@@ -1,0 +1,84 @@
+version: "3.7"
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  esdata:
+    driver: local
+
+services:
+  ### PostgreSQL ###########################################
+  postgres:
+    build: ./postgres
+    command: postgres -c 'max_connections=500'
+    volumes:
+      - ~/.go-hma-parser/data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=hma
+      - POSTGRES_USER=hma
+      - POSTGRES_PASSWORD=secret
+    networks:
+      - backend
+    restart: on-failure
+
+  ### Parser ###########################################
+  parser:
+    build:
+      context: ../
+      args:
+        app_env: prod
+    networks:
+      - backend
+    restart: on-failure
+    depends_on:
+      - tor
+      - elasticsearch
+      - postgres
+
+  ### Tor ###########################################
+  tor:
+    build: ./tor
+    ports:
+      - 9050:9050
+      - 9051:9051
+    volumes:
+      - ./tor/torrc:/etc/tor/torrc:ro
+    networks:
+      - backend
+    restart: on-failure
+
+  ### Elasticsearch ###########################################
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - backend
+    restart: on-failure
+
+  ### Kibana ###########################################
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    ports:
+      - "5601:5601"
+    networks:
+      - backend
+    restart: on-failure
+    depends_on:
+      - elasticsearch
