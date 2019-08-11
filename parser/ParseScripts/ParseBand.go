@@ -25,6 +25,7 @@ func ParseBandByUrl(url string) *models.Band {
 
 	requester := tor.NewClient()
 	response := requester.MakeGetRequest(url)
+	defer response.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
@@ -151,6 +152,7 @@ func parseDescription(platformId string) string {
 
 	requester := tor.NewClient()
 	response := requester.MakeGetRequest(url)
+	defer response.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {

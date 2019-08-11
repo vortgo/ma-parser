@@ -19,6 +19,7 @@ func ParseAlbumsByBand(band *models.Band) ([]*models.Album, error) {
 	var wg sync.WaitGroup
 	requester := tor.NewClient()
 	response := requester.MakeGetRequest(url)
+	defer response.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
@@ -34,8 +35,10 @@ func ParseAlbumsByBand(band *models.Band) ([]*models.Album, error) {
 			node := tr.Find(`td`).Get(0)
 			tdDoc := goquery.NewDocumentFromNode(node)
 			if url, exists := tdDoc.Find(`a`).Attr(`href`); exists {
-				album := parseAlbumWithSongs(band, url)
-				albums = append(albums, album)
+				album := ParseAlbumWithSongs(band, url)
+				if album != nil {
+					albums = append(albums, album)
+				}
 			}
 		}()
 	})
@@ -45,7 +48,7 @@ func ParseAlbumsByBand(band *models.Band) ([]*models.Album, error) {
 	return albums, nil
 }
 
-func parseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
+func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 	var log = logger.New()
 	defer func() {
 		if e := recover(); e != nil {
@@ -57,10 +60,12 @@ func parseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 				"stacktrace": string(debug.Stack()),
 			}).Error(e)
 		}
+
 	}()
 
 	requester := tor.NewClient()
 	response := requester.MakeGetRequest(albumUrl)
+	defer response.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
@@ -71,6 +76,7 @@ func parseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 			"album_url":  albumUrl,
 			"stacktrace": string(debug.Stack()),
 		}).Error(err)
+
 		return nil
 	}
 

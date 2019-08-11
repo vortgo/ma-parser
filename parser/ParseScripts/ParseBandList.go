@@ -81,6 +81,7 @@ func getJsonFromUrl(url string) string {
 	var log = logger.New()
 	requester := tor.NewClient()
 	response := requester.MakeGetRequest(url)
+	defer response.Body.Close()
 
 	body, readErr := ioutil.ReadAll(response.Body)
 	if readErr != nil {
