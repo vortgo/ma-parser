@@ -1,6 +1,7 @@
 package tor
 
 import (
+	"crypto/tls"
 	"github.com/sycamoreone/orc/control"
 	"github.com/vortgo/ma-parser/logger"
 	"golang.org/x/net/proxy"
@@ -107,6 +108,10 @@ func configureClient() *Client {
 	tbTransport := &http.Transport{Dial: tbDialer.Dial}
 	tbTransport.MaxIdleConns = 100
 	tbTransport.MaxIdleConnsPerHost = 100
+	tbTransport.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	tbTransport.TLSHandshakeTimeout = 10 * time.Second
 	timeout := time.Duration(30 * time.Second)
 	return &Client{http.Client{Transport: tbTransport, Timeout: timeout}}
 }
