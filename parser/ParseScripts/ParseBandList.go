@@ -20,7 +20,6 @@ type bandList struct {
 }
 
 func ParseBandList() {
-	var log = logger.New()
 	offset := 0
 	jobs := make(chan string, 100)
 
@@ -29,7 +28,6 @@ func ParseBandList() {
 		go parseBandWorker(jobs)
 	}
 	for {
-		log.Printf("ParseBandList.go ParseBandList start current offset %d", offset)
 		bandLinks := getBandsLinks(offset)
 
 		if len(*bandLinks) <= 0 {
