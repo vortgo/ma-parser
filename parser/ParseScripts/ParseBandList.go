@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type bandList struct {
@@ -126,6 +127,7 @@ func parseBandWorker(jobs <-chan string) {
 	for url := range jobs {
 		log.Println("ParseBandList.go parseBandWorker start ParseBandByUrl")
 		ParseBandByUrl(url)
+		time.Sleep(time.Second)
 		log.Println("ParseBandList.go parseBandWorker end ParseBandByUrl")
 	}
 }

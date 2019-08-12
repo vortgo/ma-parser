@@ -132,7 +132,7 @@ func configureClient() *Client {
 	tbTransport.TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
-	tbTransport.TLSHandshakeTimeout = 10 * time.Second
+	tbTransport.TLSHandshakeTimeout = 15 * time.Second
 	timeout := time.Duration(30 * time.Second)
 	return &Client{http.Client{Transport: tbTransport, Timeout: timeout}}
 }
