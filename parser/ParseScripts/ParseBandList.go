@@ -6,12 +6,12 @@ import (
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/utils/tor"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"runtime/debug"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type bandList struct {
@@ -20,10 +20,16 @@ type bandList struct {
 }
 
 func ParseBandList() {
+	var log = logger.New()
 	offset := 0
+	jobs := make(chan string, 100)
+
+	countGorutines, _ := strconv.Atoi(os.Getenv("COUNT_LIST_BAND_GORUTINES"))
+	for w := 0; w < countGorutines; w++ {
+		go parseBandWorker(jobs)
+	}
 	for {
-		var wg sync.WaitGroup
-		jobs := make(chan string, 100)
+		log.Printf("ParseBandList.go ParseBandList start current offset %d", offset)
 		bandLinks := getBandsLinks(offset)
 
 		if len(*bandLinks) <= 0 {
@@ -31,19 +37,12 @@ func ParseBandList() {
 			continue
 		}
 
-		countGorutines, _ := strconv.Atoi(os.Getenv("COUNT_LIST_BAND_GORUTINES"))
-		for w := 0; w < countGorutines; w++ {
-			wg.Add(1)
-			go parseBandWorker(jobs, &wg)
-		}
-
 		for _, bandLink := range *bandLinks {
+			log.Info("Send link to parse chanel")
 			jobs <- bandLink.Url
 		}
 
-		close(jobs)
-
-		wg.Wait()
+		log.Println("ParseBandList.go ParseBandList +200")
 		offset += 200
 	}
 }
@@ -59,6 +58,7 @@ func getBandsLinks(offset int) *[]models.BandLink {
 
 	extractLinksFromBandList(bandList, &bandsLinks)
 
+	log.Println("ParseBandList.go getBandsLinks +200")
 	return &bandsLinks
 }
 
@@ -90,6 +90,7 @@ func getJsonFromUrl(url string) string {
 		}).Error(readErr)
 	}
 
+	log.Println("ParseBandList.go getJsonFromUrl")
 	return strings.Replace(string(body), "\"sEcho\": ,\n", "", -1)
 }
 
@@ -105,28 +106,26 @@ func parseJson(jsonData string) bandList {
 			"json_string": jsonData,
 		}).Error(jsonErr)
 	}
+
+	log.Println("ParseBandList.go parseJson")
 	return bandList
 }
 
-func parseBandWorker(jobs <-chan string, wg *sync.WaitGroup) {
+func parseBandWorker(jobs <-chan string) {
 	var log = logger.New()
-	defer wg.Done()
 	defer func() {
 		if e := recover(); e != nil {
 			log.SetData(logger.Data{
 				"stacktrace": string(debug.Stack()),
 			}).Error(e)
 		}
+
+		log.Println("ParseBandList.go parseBandWorker defer")
 	}()
 
 	for url := range jobs {
-		band := ParseBandByUrl(url)
-		if band == nil {
-			log.SetData(logger.Data{
-				"url":        url,
-				"stacktrace": string(debug.Stack()),
-			}).Error("Received a nil after parse band")
-			continue
-		}
+		log.Println("ParseBandList.go parseBandWorker start ParseBandByUrl")
+		ParseBandByUrl(url)
+		log.Println("ParseBandList.go parseBandWorker end ParseBandByUrl")
 	}
 }

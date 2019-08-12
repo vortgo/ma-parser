@@ -32,7 +32,8 @@ func ParseBandByUrl(url string) *models.Band {
 		log.SetContext(logger.Context{
 			Collection: "Parse band by url",
 		}).SetData(logger.Data{
-			"url": url,
+			"url":        url,
+			"stacktrace": string(debug.Stack()),
 		}).Error(err)
 	}
 
