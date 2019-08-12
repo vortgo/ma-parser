@@ -6,7 +6,6 @@ import (
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/utils/tor"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"runtime/debug"
@@ -39,11 +38,9 @@ func ParseBandList() {
 		}
 
 		for _, bandLink := range *bandLinks {
-			log.Info("Send link to parse chanel")
 			jobs <- bandLink.Url
 		}
 
-		log.Println("ParseBandList.go ParseBandList +200")
 		offset += 200
 	}
 }
@@ -59,7 +56,6 @@ func getBandsLinks(offset int) *[]models.BandLink {
 
 	extractLinksFromBandList(bandList, &bandsLinks)
 
-	log.Println("ParseBandList.go getBandsLinks +200")
 	return &bandsLinks
 }
 
@@ -91,7 +87,6 @@ func getJsonFromUrl(url string) string {
 		}).Error(readErr)
 	}
 
-	log.Println("ParseBandList.go getJsonFromUrl")
 	return strings.Replace(string(body), "\"sEcho\": ,\n", "", -1)
 }
 
@@ -108,7 +103,6 @@ func parseJson(jsonData string) bandList {
 		}).Error(jsonErr)
 	}
 
-	log.Println("ParseBandList.go parseJson")
 	return bandList
 }
 
@@ -120,14 +114,10 @@ func parseBandWorker(jobs <-chan string) {
 				"stacktrace": string(debug.Stack()),
 			}).Error(e)
 		}
-
-		log.Println("ParseBandList.go parseBandWorker defer")
 	}()
 
 	for url := range jobs {
-		log.Println("ParseBandList.go parseBandWorker start ParseBandByUrl")
 		ParseBandByUrl(url)
 		time.Sleep(time.Second)
-		log.Println("ParseBandList.go parseBandWorker end ParseBandByUrl")
 	}
 }

@@ -33,7 +33,7 @@ services:
         app_env: prod
     networks:
       - backend
-#    restart: on-failure
+    restart: on-failure
     depends_on:
       - tor
       - elasticsearch
