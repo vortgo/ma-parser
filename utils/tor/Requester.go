@@ -19,6 +19,8 @@ type Client struct {
 var lastUpdTimestamp int64
 var mutex = &sync.Mutex{}
 
+const userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
+
 func init() {
 	lastUpdTimestamp = time.Now().Unix() - 1000
 }
@@ -33,7 +35,11 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 		return client.MakeGetRequest(requestUrl)
 	}
 
-	resp, err := client.Get(requestUrl)
+	req, _ := http.NewRequest("GET", requestUrl, nil)
+
+	req.Header.Set("User-Agent", userAgent)
+
+	resp, err := client.Do(req)
 	if err != nil || resp == nil {
 		//
 		//log.SetData(logger.Data{
