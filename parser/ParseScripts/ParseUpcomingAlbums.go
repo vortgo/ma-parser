@@ -3,6 +3,7 @@ package ParseScripts
 import (
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,19 +14,21 @@ import (
 const upcomingAlbumsUrl = "https://www.metal-archives.com/release/ajax-upcoming/json/1?sEcho=1&iColumns=5&sColumns=&iDisplayStart=0&iDisplayLength=100&mDataProp_0=0&mDataProp_1=1&mDataProp_2=2&mDataProp_3=3&mDataProp_4=4&iSortCol_0=4&sSortDir_0=asc&iSortingCols=1&bSortable_0=true&bSortable_1=true&bSortable_2=true&bSortable_3=true&bSortable_4=true&_=1565289584123"
 
 func ParseUpcomingAlbums() {
-	var wg sync.WaitGroup
-	ticker := time.NewTicker(time.Minute * 30)
-	wg.Add(1)
-	go func() {
-		for range ticker.C {
-			latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
-			albumRepo := repositories.MakeAlbumRepository()
-			upcomingAlbumRepo := repositories.MakeUpcomingAlbumRepository()
-			jsonString := getJsonFromUrl(upcomingAlbumsUrl)
-			albumList := parseJson(jsonString)
-			list := albumList.Data[:10]
+	upcomingAlbumsPeriod, _ := strconv.Atoi(os.Getenv("PARSE_UPCOMING_ALBUMS_PERIOD_MINUTES"))
+	ticker := time.NewTicker(time.Minute * time.Duration(upcomingAlbumsPeriod))
 
-			for _, v := range list {
+	for range ticker.C {
+		latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
+		albumRepo := repositories.MakeAlbumRepository()
+		upcomingAlbumRepo := repositories.MakeUpcomingAlbumRepository()
+		jsonString := getJsonFromUrl(upcomingAlbumsUrl)
+		albumList := parseJson(jsonString)
+		list := albumList.Data[:10]
+
+		var wg sync.WaitGroup
+		for _, v := range list {
+			wg.Add(1)
+			go func() {
 				r, _ := regexp.Compile(`<a href="(.*?)">`)
 				link := r.FindStringSubmatch(v[0])[1]
 
@@ -42,9 +45,9 @@ func ParseUpcomingAlbums() {
 						upcomingAlbumRepo.Save(&models.UpcomingAlbum{Album: *album})
 					}
 				}
-			}
+			}()
 		}
-	}()
+		wg.Wait()
+	}
 
-	wg.Wait()
 }

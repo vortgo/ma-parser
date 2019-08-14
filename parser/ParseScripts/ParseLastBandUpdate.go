@@ -4,8 +4,10 @@ import (
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
+	"os"
 	"regexp"
 	"runtime/debug"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -14,28 +16,29 @@ const lastBandUpdateUrl = "https://www.metal-archives.com/archives/ajax-band-lis
 
 func ParseLastBandUpdate() {
 	var log = logger.New()
-	var wg sync.WaitGroup
-	ticker := time.NewTicker(time.Minute * 10)
-	wg.Add(1)
-	go func() {
-		defer func() {
-			if e := recover(); e != nil {
-				log.SetContext(logger.Context{
-					Collection: "ParseLastBandUpdate",
-				}).SetData(logger.Data{
-					"stacktrace": string(debug.Stack()),
-				}).Error(e)
-				return
-			}
-		}()
+	lastBandUpdatePeriod, _ := strconv.Atoi(os.Getenv("PARSE_LAST_BAND_UPDATE_PERIOD_MINUTES"))
+	ticker := time.NewTicker(time.Minute * time.Duration(lastBandUpdatePeriod))
+	defer func() {
+		if e := recover(); e != nil {
+			log.SetContext(logger.Context{
+				Collection: "ParseLastBandUpdate",
+			}).SetData(logger.Data{
+				"stacktrace": string(debug.Stack()),
+			}).Error(e)
+			return
+		}
+	}()
 
-		for range ticker.C {
-			jsonString := getJsonFromUrl(lastBandUpdateUrl)
-			bandList := parseJson(jsonString)
-			latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
-			list := bandList.Data[:10]
+	for range ticker.C {
+		var wg sync.WaitGroup
+		jsonString := getJsonFromUrl(lastBandUpdateUrl)
+		bandList := parseJson(jsonString)
+		latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
+		list := bandList.Data[:10]
 
-			for _, v := range list {
+		for _, v := range list {
+			wg.Add(1)
+			go func() {
 				r, _ := regexp.Compile(`<a href="(.*?)">`)
 				link := r.FindStringSubmatch(v[1])[1]
 				band := ParseBandByUrl(link)
@@ -44,9 +47,9 @@ func ParseLastBandUpdate() {
 					latestBandUpdate := models.LatestBandUpdate{BandID: band.ID}
 					latestBandUpdRepo.Save(&latestBandUpdate)
 				}
-			}
+			}()
 		}
-	}()
+		wg.Wait()
+	}
 
-	wg.Wait()
 }
