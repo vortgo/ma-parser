@@ -3,6 +3,7 @@ package ParseScripts
 import (
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -18,7 +19,6 @@ func ParseUpcomingAlbums() {
 	ticker := time.NewTicker(time.Minute * time.Duration(upcomingAlbumsPeriod))
 
 	for range ticker.C {
-		latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
 		albumRepo := repositories.MakeAlbumRepository()
 		upcomingAlbumRepo := repositories.MakeUpcomingAlbumRepository()
 		jsonString := getJsonFromUrl(upcomingAlbumsUrl)
@@ -28,26 +28,23 @@ func ParseUpcomingAlbums() {
 		var wg sync.WaitGroup
 		for _, v := range list {
 			wg.Add(1)
-			go func() {
-				r, _ := regexp.Compile(`<a href="(.*?)">`)
-				link := r.FindStringSubmatch(v[0])[1]
+			r, _ := regexp.Compile(`<a href="(.*?)">`)
+			link := r.FindStringSubmatch(v[0])[1]
 
-				band := ParseBandByUrl(link)
+			band := ParseBandByUrl(link)
 
-				if band != nil {
-					latestBandUpdate := models.LatestBandUpdate{BandID: band.ID}
-					latestBandUpdRepo.Save(&latestBandUpdate)
-
-					albumLink := r.FindStringSubmatch(v[1])[1]
-					urlParts := strings.Split(albumLink, "/")
-					albumPlatformId, _ := strconv.Atoi(urlParts[len(urlParts)-1])
-					if album := albumRepo.FindAlbumByPlatformId(albumPlatformId); album != nil {
-						upcomingAlbumRepo.Save(&models.UpcomingAlbum{Album: *album})
-					}
+			if band != nil {
+				log.Printf("band parsed")
+				albumLink := r.FindStringSubmatch(v[1])[1]
+				urlParts := strings.Split(albumLink, "/")
+				albumPlatformId, _ := strconv.Atoi(urlParts[len(urlParts)-1])
+				log.Printf("ParseUpcomingAlbums album albumPlatformId %d", albumPlatformId)
+				if album := albumRepo.FindAlbumByPlatformId(albumPlatformId); album.ID != 0 {
+					log.Printf("ParseUpcomingAlbums album store %d", album.ID)
+					upcomingAlbumRepo.Save(&models.UpcomingAlbum{AlbumID: album.ID})
 				}
-			}()
+			}
 		}
-		wg.Wait()
 	}
 
 }

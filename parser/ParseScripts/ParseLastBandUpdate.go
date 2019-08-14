@@ -44,8 +44,7 @@ func ParseLastBandUpdate() {
 				band := ParseBandByUrl(link)
 
 				if band != nil {
-					latestBandUpdate := models.LatestBandUpdate{BandID: band.ID}
-					latestBandUpdRepo.Save(&latestBandUpdate)
+					latestBandUpdRepo.Save(&models.LatestBandUpdate{BandID: band.ID})
 				}
 			}()
 		}
