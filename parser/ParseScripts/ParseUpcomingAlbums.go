@@ -34,13 +34,10 @@ func ParseUpcomingAlbums() {
 			band := ParseBandByUrl(link)
 
 			if band != nil {
-				log.Printf("band parsed")
 				albumLink := r.FindStringSubmatch(v[1])[1]
 				urlParts := strings.Split(albumLink, "/")
 				albumPlatformId, _ := strconv.Atoi(urlParts[len(urlParts)-1])
-				log.Printf("ParseUpcomingAlbums album albumPlatformId %d", albumPlatformId)
 				if album := albumRepo.FindAlbumByPlatformId(albumPlatformId); album.ID != 0 {
-					log.Printf("ParseUpcomingAlbums album store %d", album.ID)
 					upcomingAlbumRepo.Save(&models.UpcomingAlbum{AlbumID: album.ID})
 				}
 			}
