@@ -2,7 +2,6 @@ package ParseScripts
 
 import (
 	"github.com/vortgo/ma-parser/logger"
-	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
 	"os"
 	"regexp"
@@ -38,17 +37,18 @@ func ParseLastBandUpdate() {
 
 		for _, v := range list {
 			wg.Add(1)
-			go func() {
+			go func(wg *sync.WaitGroup) {
+				defer wg.Done()
 				r, _ := regexp.Compile(`<a href="(.*?)">`)
 				link := r.FindStringSubmatch(v[1])[1]
 				band := ParseBandByUrl(link)
 
 				if band != nil {
-					latestBandUpdRepo.Save(&models.LatestBandUpdate{BandID: band.ID})
+					latestBand := latestBandUpdRepo.FindByBandId(band.ID)
+					latestBandUpdRepo.Save(latestBand)
 				}
-			}()
+			}(&wg)
 		}
 		wg.Wait()
 	}
-
 }

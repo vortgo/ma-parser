@@ -1,9 +1,7 @@
 package ParseScripts
 
 import (
-	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -38,7 +36,8 @@ func ParseUpcomingAlbums() {
 				urlParts := strings.Split(albumLink, "/")
 				albumPlatformId, _ := strconv.Atoi(urlParts[len(urlParts)-1])
 				if album := albumRepo.FindAlbumByPlatformId(albumPlatformId); album.ID != 0 {
-					upcomingAlbumRepo.Save(&models.UpcomingAlbum{AlbumID: album.ID})
+					upcomingAlbum := upcomingAlbumRepo.FindByAlbumId(album.ID)
+					upcomingAlbumRepo.Save(upcomingAlbum)
 				}
 			}
 		}
