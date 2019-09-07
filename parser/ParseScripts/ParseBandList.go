@@ -6,6 +6,7 @@ import (
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/utils/tor"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"runtime/debug"
@@ -20,6 +21,7 @@ type bandList struct {
 }
 
 func ParseBandList() {
+	log.Println("ParseBandList")
 	offset := 0
 	jobs := make(chan string, 100)
 
@@ -36,6 +38,7 @@ func ParseBandList() {
 		}
 
 		for _, bandLink := range *bandLinks {
+			log.Println(bandLink.Url)
 			jobs <- bandLink.Url
 		}
 
