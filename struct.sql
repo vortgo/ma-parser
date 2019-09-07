@@ -1,3 +1,6 @@
+create database hma
+	with owner postgres;
+
 create table if not exists band_links
 (
 	id serial not null
@@ -39,6 +42,15 @@ create table if not exists countries
 
 alter table countries owner to hma;
 
+create unique index if not exists countries_id_uindex
+	on countries (id);
+
+create unique index if not exists countries_name_uindex
+	on countries (name);
+
+create index if not exists idx_countries_deleted_at
+	on countries (deleted_at);
+
 create table if not exists artists
 (
 	id serial not null
@@ -48,7 +60,7 @@ create table if not exists artists
 	country_id integer
 		constraint artists_country_fk
 			references countries
-				on update set null on delete set null,
+			on update set null on delete set null,
 	born_year integer,
 	gender varchar,
 	image integer
@@ -58,15 +70,6 @@ alter table artists owner to hma;
 
 create unique index if not exists artists_id_uindex
 	on artists (id);
-
-create unique index if not exists countries_id_uindex
-	on countries (id);
-
-create unique index if not exists countries_name_uindex
-	on countries (name);
-
-create index if not exists idx_countries_deleted_at
-	on countries (deleted_at);
 
 create table if not exists genres
 (
@@ -103,6 +106,15 @@ create table if not exists labels
 
 alter table labels owner to hma;
 
+create index if not exists idx_labels_deleted_at
+	on labels (deleted_at);
+
+create unique index if not exists labels_id_uindex
+	on labels (id);
+
+create unique index if not exists labels_name_uindex
+	on labels (name);
+
 create table if not exists bands
 (
 	id serial not null
@@ -113,13 +125,13 @@ create table if not exists bands
 	country_id integer
 		constraint bands_country_fk
 			references countries
-				on update set null on delete set null,
+			on update set null on delete set null,
 	formed_in integer,
 	years_active varchar,
 	label_id integer
 		constraint bands_label_fk
 			references labels
-				on update set null on delete set null,
+			on update set null on delete set null,
 	description varchar,
 	image_logo varchar,
 	created_at timestamp(6) with time zone,
@@ -135,6 +147,15 @@ comment on column bands.years_active is '2000-2010';
 
 alter table bands owner to hma;
 
+create unique index if not exists bands_id_uindex
+	on bands (id);
+
+create index if not exists idx_bands_deleted_at
+	on bands (deleted_at, deleted_at, deleted_at);
+
+create unique index if not exists bands_platform_id_uindex
+	on bands (platform_id);
+
 create table if not exists albums
 (
 	id serial not null
@@ -143,7 +164,7 @@ create table if not exists albums
 	band_id integer
 		constraint albums_band_fk
 			references bands
-				on update cascade on delete cascade,
+			on update cascade on delete cascade,
 	type varchar,
 	name varchar not null,
 	year integer,
@@ -153,7 +174,7 @@ create table if not exists albums
 	label_id integer
 		constraint albums_label_fk
 			references labels
-				on update set null on delete set null,
+			on update set null on delete set null,
 	platform_id integer not null,
 	created_at timestamp(6) with time zone,
 	updated_at timestamp(6) with time zone,
@@ -179,11 +200,11 @@ create table if not exists albums_members
 	album_id integer
 		constraint albums_members_albums_fk
 			references albums
-				on update set null on delete set null,
+			on update set null on delete set null,
 	artist_id integer
 		constraint albums_members_artists_fk
 			references artists
-				on update set null on delete set null,
+			on update set null on delete set null,
 	position varchar
 );
 
@@ -191,12 +212,6 @@ alter table albums_members owner to hma;
 
 create unique index if not exists albums_members_id_uindex
 	on albums_members (id);
-
-create unique index if not exists bands_id_uindex
-	on bands (id);
-
-create index if not exists idx_bands_deleted_at
-	on bands (deleted_at, deleted_at, deleted_at);
 
 create table if not exists bands_members
 (
@@ -206,11 +221,11 @@ create table if not exists bands_members
 	band_id integer
 		constraint bands_members_bands_fk
 			references bands
-				on update restrict on delete restrict,
+			on update restrict on delete restrict,
 	artist_id integer
 		constraint bands_members_artists_fk
 			references artists
-				on update restrict on delete restrict,
+			on update restrict on delete restrict,
 	position varchar,
 	type varchar
 );
@@ -221,15 +236,6 @@ alter table bands_members owner to hma;
 
 create unique index if not exists bands_members_id_uindex
 	on bands_members (id);
-
-create index if not exists idx_labels_deleted_at
-	on labels (deleted_at);
-
-create unique index if not exists labels_id_uindex
-	on labels (id);
-
-create unique index if not exists labels_name_uindex
-	on labels (name);
 
 create table if not exists lyrical_themes
 (
@@ -244,20 +250,6 @@ create table if not exists lyrical_themes
 
 alter table lyrical_themes owner to hma;
 
-create table if not exists bands_lyrical_themes
-(
-	band_id integer not null
-		constraint bands_lyrical_themes_band_fk
-			references bands
-				on update cascade on delete cascade,
-	lyrical_theme_id integer not null
-		constraint bands_lyrical_themes_lyrical_theme_id_fk
-			references lyrical_themes
-				on update cascade on delete cascade
-);
-
-alter table bands_lyrical_themes owner to hma;
-
 create index if not exists idx_lyrical_themes_deleted_at
 	on lyrical_themes (deleted_at);
 
@@ -267,6 +259,20 @@ create unique index if not exists lyrichal_themes_id_uindex
 create unique index if not exists lyrichal_themes_name_uindex
 	on lyrical_themes (name);
 
+create table if not exists bands_lyrical_themes
+(
+	band_id integer not null
+		constraint bands_lyrical_themes_band_fk
+			references bands
+			on update cascade on delete cascade,
+	lyrical_theme_id integer not null
+		constraint bands_lyrical_themes_lyrical_theme_id_fk
+			references lyrical_themes
+			on update cascade on delete cascade
+);
+
+alter table bands_lyrical_themes owner to hma;
+
 create table if not exists reviews
 (
 	id serial not null
@@ -275,7 +281,7 @@ create table if not exists reviews
 	album_id integer
 		constraint reviews_albums_fk
 			references albums
-				on update set null on delete set null,
+			on update set null on delete set null,
 	rating varchar,
 	date timestamp(6),
 	text varchar
@@ -334,43 +340,40 @@ create index if not exists idx_songs_deleted_at
 create unique index if not exists songs_id_uindex
 	on songs (id);
 
--- auto-generated definition
-create table latest_band_updates
+create unique index if not exists songs_platform_id_uindex
+	on songs (platform_id);
+
+create table if not exists latest_band_updates
 (
-  id         serial  not null
-    constraint latest_band_update_pk
-      primary key,
-  band_id    integer not null
-    constraint latest_band_update_bands_id_fk
-      references bands,
-  created_at timestamp,
-  updated_at timestamp
+	id serial not null
+		constraint latest_band_update_pk
+			primary key,
+	band_id integer not null
+		constraint latest_band_update_bands_id_fk
+			references bands,
+	created_at timestamp,
+	updated_at timestamp
 );
 
-alter table latest_band_updates
-  owner to hma;
+alter table latest_band_updates owner to hma;
 
-create unique index latest_band_update_id_uindex
-  on latest_band_updates (id);
+create unique index if not exists latest_band_update_id_uindex
+	on latest_band_updates (id);
 
-
--- auto-generated definition
-create table upcoming_albums
+create table if not exists upcoming_albums
 (
-  id         serial    not null
-    constraint upcoming_albums_pk
-      primary key,
-  album_id   integer   not null
-    constraint upcoming_albums_albums_id_fk
-      references albums,
-  created_at timestamp not null,
-  updated_at timestamp
+	id serial not null
+		constraint upcoming_albums_pk
+			primary key,
+	album_id integer not null
+		constraint upcoming_albums_albums_id_fk
+			references albums,
+	created_at timestamp not null,
+	updated_at timestamp
 );
 
-alter table upcoming_albums
-  owner to hma;
+alter table upcoming_albums owner to hma;
 
-create unique index upcoming_albums_id_uindex
-  on upcoming_albums (id);
-
+create unique index if not exists upcoming_albums_id_uindex
+	on upcoming_albums (id);
 
