@@ -2,6 +2,7 @@ package ParseScripts
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/utils/tor"
@@ -21,6 +22,7 @@ type bandList struct {
 }
 
 func ParseBandList() {
+	fmt.Println("ParseBandList")
 	log.Println("ParseBandList")
 	offset := 0
 	jobs := make(chan string, 100)
