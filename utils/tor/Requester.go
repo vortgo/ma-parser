@@ -19,8 +19,6 @@ type Client struct {
 var lastUpdTimestamp int64
 var mutex = &sync.Mutex{}
 
-const userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
-
 func init() {
 	lastUpdTimestamp = time.Now().Unix() - 1000
 }
@@ -37,7 +35,9 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 
 	req, _ := http.NewRequest("GET", requestUrl, nil)
 
-	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; rv:60.0) Gecko/20100101 Firefox/60.0")
+	req.Header.Set("accept", "*/*")
+	req.Header.Del("Accept-Encoding")
 
 	resp, err := client.Do(req)
 	if err != nil || resp == nil {
@@ -118,7 +118,7 @@ func configureClient() *Client {
 		log.Warningf("Failed to obtain proxy dialer: %v\n", err)
 	}
 
-	tbTransport := &http.Transport{Dial: tbDialer.Dial}
+	tbTransport := &http.Transport{Dial: tbDialer.Dial, DisableCompression: true}
 	tbTransport.MaxIdleConns = 100
 	tbTransport.MaxIdleConnsPerHost = 100
 	tbTransport.TLSClientConfig = &tls.Config{
