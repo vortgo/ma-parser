@@ -2,7 +2,6 @@ package ParseScripts
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/utils/tor"
@@ -22,7 +21,6 @@ type bandList struct {
 }
 
 func ParseBandList() {
-	fmt.Println("ParseBandList")
 	log.Println("ParseBandList")
 	offset := 0
 	jobs := make(chan string, 100)
@@ -54,6 +52,8 @@ func getBandsLinks(offset int) *[]models.BandLink {
 	var bandsLinks []models.BandLink
 
 	link := url + "?iDisplayStart=" + strconv.Itoa(offset)
+	log.Println("getBandsLinks")
+	log.Println(link)
 	jsonString := getJsonFromUrl(link)
 	bandList := parseJson(jsonString)
 
@@ -79,8 +79,10 @@ func extractLinksFromBandList(bandList bandList, bandUrls *[]models.BandLink) {
 
 func getJsonFromUrl(url string) string {
 	var log = logger.New()
+	log.Println("getJsonFromUrl")
 	requester := tor.NewClient()
 	response := requester.MakeGetRequest(url)
+	log.Println("response")
 	defer response.Body.Close()
 
 	body, readErr := ioutil.ReadAll(response.Body)
@@ -89,6 +91,8 @@ func getJsonFromUrl(url string) string {
 			"url": url,
 		}).Error(readErr)
 	}
+
+	log.Println(string(body))
 
 	return strings.Replace(string(body), "\"sEcho\": ,\n", "", -1)
 }
