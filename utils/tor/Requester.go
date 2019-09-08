@@ -30,6 +30,7 @@ func NewClient() *Client {
 }
 
 func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
+	log := logger.New()
 	retry := func(requestUrl string) *http.Response {
 		client.RenewIP()
 		return client.MakeGetRequest(requestUrl)
@@ -41,22 +42,21 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 
 	resp, err := client.Do(req)
 	if err != nil || resp == nil {
-		//
-		//log.SetData(logger.Data{
-		//	"request_url": requestUrl,
-		//	"culprit":     "Requester",
-		//}).Warningf("Failed GET request - %s", err)
+		log.SetData(logger.Data{
+			"request_url": requestUrl,
+			"culprit":     "Requester",
+		}).Warningf("Failed GET request - %s", err)
 
 		return retry(requestUrl)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 
-		//log.SetData(logger.Data{
-		//	"culprit":     "Requester",
-		//	"request_url": requestUrl,
-		//	"status_code": resp.StatusCode,
-		//}).Warning("Failed GET request - status <> 200")
+		log.SetData(logger.Data{
+			"culprit":     "Requester",
+			"request_url": requestUrl,
+			"status_code": resp.StatusCode,
+		}).Warning("Failed GET request - status <> 200")
 
 		return retry(requestUrl)
 	}
