@@ -1,17 +1,17 @@
 package ParseScripts
 
 import (
+	"fmt"
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/repositories"
 	"os"
 	"regexp"
 	"runtime/debug"
 	"strconv"
-	"sync"
 	"time"
 )
 
-const lastBandUpdateUrl = "https://www.metal-archives.com/archives/ajax-band-list/selection/2019-08/by/modified//json/1?sEcho=1iDisplayStart=0&iDisplayLength=200&mDataProp_3=3&mDataProp_4=4&mDataProp_5=5&iSortCol_0=4&sSortDir_0=desc&iSortingCols=1&bSortable_0=true&bSortable_1=true&bSortable_2=true&bSortable_3=true&bSortable_4=true&bSortable_5=true&_=1565032791855"
+const lastBandUpdateUrl = "https://www.metal-archives.com/archives/ajax-band-list/selection/%s/by/modified//json/1?sEcho=1iDisplayStart=0&iDisplayLength=200&mDataProp_3=3&mDataProp_4=4&mDataProp_5=5&iSortCol_0=4&sSortDir_0=desc&iSortingCols=1&bSortable_0=true&bSortable_1=true&bSortable_2=true&bSortable_3=true&bSortable_4=true&bSortable_5=true&_=1565032791855"
 
 func ParseLastBandUpdate() {
 	var log = logger.New()
@@ -28,27 +28,24 @@ func ParseLastBandUpdate() {
 		}
 	}()
 
+	dt := time.Now()
+	url := fmt.Sprintf(lastBandUpdateUrl, dt.Format("2006-01"))
 	for range ticker.C {
-		var wg sync.WaitGroup
-		jsonString := getJsonFromUrl(lastBandUpdateUrl)
+
+		jsonString := getJsonFromUrl(url)
 		bandList := parseJson(jsonString)
 		latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
 		list := bandList.Data[:10]
 
 		for _, v := range list {
-			wg.Add(1)
-			go func(wg *sync.WaitGroup) {
-				defer wg.Done()
-				r, _ := regexp.Compile(`<a href="(.*?)">`)
-				link := r.FindStringSubmatch(v[1])[1]
-				band := ParseBandByUrl(link)
+			r, _ := regexp.Compile(`<a href="(.*?)">`)
+			link := r.FindStringSubmatch(v[1])[1]
+			band := ParseBandByUrl(link)
 
-				if band != nil {
-					latestBand := latestBandUpdRepo.FindByBandId(band.ID)
-					latestBandUpdRepo.Save(latestBand)
-				}
-			}(&wg)
+			if band != nil {
+				latestBand := latestBandUpdRepo.FindByBandId(band.ID)
+				latestBandUpdRepo.Save(latestBand)
+			}
 		}
-		wg.Wait()
 	}
 }

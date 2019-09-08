@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -23,9 +22,7 @@ func ParseUpcomingAlbums() {
 		albumList := parseJson(jsonString)
 		list := albumList.Data[:10]
 
-		var wg sync.WaitGroup
 		for _, v := range list {
-			wg.Add(1)
 			r, _ := regexp.Compile(`<a href="(.*?)">`)
 			link := r.FindStringSubmatch(v[0])[1]
 
