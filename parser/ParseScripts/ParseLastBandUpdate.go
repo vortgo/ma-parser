@@ -16,7 +16,7 @@ const lastBandUpdateUrl = "https://www.metal-archives.com/archives/ajax-band-lis
 func ParseLastBandUpdate() {
 	var log = logger.New()
 	lastBandUpdatePeriod, _ := strconv.Atoi(os.Getenv("PARSE_LAST_BAND_UPDATE_PERIOD_MINUTES"))
-	ticker := time.NewTicker(time.Minute * time.Duration(lastBandUpdatePeriod))
+	ticker := time.NewTicker(time.Second * time.Duration(lastBandUpdatePeriod))
 	defer func() {
 		if e := recover(); e != nil {
 			log.SetContext(logger.Context{
@@ -31,12 +31,12 @@ func ParseLastBandUpdate() {
 	dt := time.Now()
 	url := fmt.Sprintf(lastBandUpdateUrl, dt.Format("2006-01"))
 	for range ticker.C {
-
+		println("start ParseLastBandUpdate")
 		jsonString := getJsonFromUrl(url)
 		bandList := parseJson(jsonString)
 		latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
 		list := bandList.Data[:10]
-
+		println("parsed bands links")
 		for _, v := range list {
 			r, _ := regexp.Compile(`<a href="(.*?)">`)
 			link := r.FindStringSubmatch(v[1])[1]

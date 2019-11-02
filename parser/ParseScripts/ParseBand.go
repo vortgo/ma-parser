@@ -5,7 +5,7 @@ import (
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
-	"github.com/vortgo/ma-parser/utils/tor"
+	"github.com/vortgo/ma-parser/utils"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -23,7 +23,7 @@ func ParseBandByUrl(url string) *models.Band {
 		}
 	}()
 
-	requester := tor.NewClient()
+	requester := utils.NewClient()
 	response := requester.MakeGetRequest(url)
 	defer response.Body.Close()
 
@@ -134,6 +134,7 @@ func parseBandInfo(doc *goquery.Document) *models.Band {
 
 	bandRepo.Save(&band)
 
+	println("Band parsed " + band.Name)
 	ParseAlbumsByBand(&band)
 
 	return &band
@@ -151,7 +152,7 @@ func parseDescription(platformId string) string {
 		}
 	}()
 
-	requester := tor.NewClient()
+	requester := utils.NewClient()
 	response := requester.MakeGetRequest(url)
 	defer response.Body.Close()
 

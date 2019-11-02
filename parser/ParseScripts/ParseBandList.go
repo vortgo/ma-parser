@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
-	"github.com/vortgo/ma-parser/utils/tor"
+	"github.com/vortgo/ma-parser/utils"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -74,7 +74,7 @@ func extractLinksFromBandList(bandList bandList, bandUrls *[]models.BandLink) {
 
 func getJsonFromUrl(url string) string {
 	var log = logger.New()
-	requester := tor.NewClient()
+	requester := utils.NewClient()
 	response := requester.MakeGetRequest(url)
 	defer response.Body.Close()
 

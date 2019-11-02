@@ -4,7 +4,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195
 	github.com/jinzhu/gorm v1.9.10
-	github.com/joho/godotenv v1.3.0 // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/olivere/elastic v6.2.22+incompatible
 	github.com/olivere/elastic/v7 v7.0.5
 	github.com/pkg/errors v0.8.1

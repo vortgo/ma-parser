@@ -6,45 +6,28 @@ import (
 	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
-	"github.com/vortgo/ma-parser/utils/tor"
+	"github.com/vortgo/ma-parser/utils"
 	"runtime/debug"
 	"strconv"
 	"strings"
-	"sync"
 )
-
-type parserAlbumJob struct {
-	band *models.Band
-	url  string
-}
 
 func ParseAlbumsByBand(band *models.Band) {
 	var url = `https://www.metal-archives.com/band/discography/id/` + band.PlatformID + `/tab/all`
 
-	requester := tor.NewClient()
+	requester := utils.NewClient()
 	response := requester.MakeGetRequest(url)
 	defer response.Body.Close()
 
 	doc, _ := goquery.NewDocumentFromReader(response.Body)
 
-	jobs := make(chan parserAlbumJob, 100)
-	wg := sync.WaitGroup{}
-
-	for i := 0; i < 4; i++ {
-		wg.Add(1)
-		go parseAlbumWorker(jobs, &wg)
-	}
-
 	doc.Find(`tbody tr`).Each(func(i int, tr *goquery.Selection) {
-
 		node := tr.Find(`td`).Get(0)
 		tdDoc := goquery.NewDocumentFromNode(node)
 		if url, exists := tdDoc.Find(`a`).Attr(`href`); exists {
-			jobs <- parserAlbumJob{band: band, url: url}
+			ParseAlbumWithSongs(band, url)
 		}
 	})
-	close(jobs)
-	wg.Wait()
 }
 
 func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
@@ -62,7 +45,7 @@ func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 
 	}()
 
-	requester := tor.NewClient()
+	requester := utils.NewClient()
 	response := requester.MakeGetRequest(albumUrl)
 	defer response.Body.Close()
 
@@ -126,15 +109,8 @@ func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 	albumRepo := repositories.MakeAlbumRepository()
 	albumRepo.Save(Album)
 
+	println("Album parsed " + band.Name + " - " + Album.Name)
 	ParseSongs(Album, doc)
 
 	return Album
-}
-
-func parseAlbumWorker(jobs <-chan parserAlbumJob, wg *sync.WaitGroup) {
-
-	defer wg.Done()
-	for job := range jobs {
-		ParseAlbumWithSongs(job.band, job.url)
-	}
 }
