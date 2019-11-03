@@ -30,9 +30,9 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 
 	resp, err := client.Do(req)
 	if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
-		log.Println("err")
-		log.Println("resp")
-		log.Println("resp.StatusCode")
+		log.Println(err)
+		log.Println(resp)
+		log.Println(resp.StatusCode)
 		//
 		//log.SetData(logger.Data{
 		//	"request_url": requestUrl,
