@@ -5,7 +5,6 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/pkg/errors"
-	"log"
 	"os"
 )
 
@@ -20,8 +19,6 @@ func init() {
 }
 
 func postgresInit() *gorm.DB {
-	log.Println("postgresInit")
-	//TODO: move to env
 	dns := fmt.Sprintf(
 		`host=%s port=%s user=%s dbname=%s password=%s sslmode=disable`,
 		os.Getenv("POSTGRES_HOST"),

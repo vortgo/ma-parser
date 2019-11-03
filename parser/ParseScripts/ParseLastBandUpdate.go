@@ -31,12 +31,10 @@ func ParseLastBandUpdate() {
 	dt := time.Now()
 	url := fmt.Sprintf(lastBandUpdateUrl, dt.Format("2006-01"))
 	for range ticker.C {
-		println("start ParseLastBandUpdate")
 		jsonString := getJsonFromUrl(url)
 		bandList := parseJson(jsonString)
 		latestBandUpdRepo := repositories.MakeLatestBandUpdateRepository()
 		list := bandList.Data[:10]
-		println("parsed bands links")
 		for _, v := range list {
 			r, _ := regexp.Compile(`<a href="(.*?)">`)
 			link := r.FindStringSubmatch(v[1])[1]

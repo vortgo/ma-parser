@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const LyricsNotAvailable = "(lyrics not available)"
+
 func ParseSongs(album *models.Album, albumPage *goquery.Document) {
 	songRepo := repositories.MakeSongRepository()
 	albumPage.Find(`table.table_lyrics tbody tr`).Each(func(i int, selection *goquery.Selection) {
@@ -44,18 +46,18 @@ func ParseSongs(album *models.Album, albumPage *goquery.Document) {
 			}
 
 			Song = songRepo.LoadByPlatformId(platformId)
-			if Song.ID == 0 {
+			if Song.ID == 0 || Song.Lyrics == LyricsNotAvailable {
 				Song.Lyrics = getlyrics(songId)
 			}
 			Song.Position, _ = strconv.Atoi(strings.TrimSpace(strings.Replace(position, `.`, ``, -1)))
-			Song.Name = strings.TrimSpace(songsName)
+			songName := strings.TrimSpace(songsName)
+			Song.Name = strings.Replace(songName, "\n", "", -1)
 			Song.Time = duration
 			Song.PlatformID = platformId
 			Song.BandID = album.BandID
 			Song.AlbumID = album.ID
 
 			songRepo.Save(Song)
-			println("Parsed song " + album.Name + " - " + Song.Name)
 		}
 	})
 }
@@ -88,6 +90,10 @@ func getlyrics(platformId string) string {
 	}
 
 	lyrics := doc.Text()
+
+	if strings.Contains(lyrics, LyricsNotAvailable) {
+		lyrics = strings.Replace(lyrics, "\n", "", -1)
+	}
 
 	time.Sleep(time.Second)
 	return lyrics

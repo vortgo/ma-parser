@@ -82,7 +82,8 @@ func parseBandInfo(doc *goquery.Document) *models.Band {
 		}
 	})
 
-	band.Name = doc.Find(`#band_info .band_name a`).Text()
+	bandName := doc.Find(`#band_info .band_name a`).Text()
+	band.Name = strings.Replace(bandName, "\n", "", -1)
 
 	Node := doc.Find(`#band_stats .float_left dd`).Get(position["formed"])
 	band.FormedIn, _ = strconv.Atoi(goquery.NewDocumentFromNode(Node).Text())
@@ -134,7 +135,6 @@ func parseBandInfo(doc *goquery.Document) *models.Band {
 
 	bandRepo.Save(&band)
 
-	println("Band parsed " + band.Name)
 	ParseAlbumsByBand(&band)
 
 	return &band

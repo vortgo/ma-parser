@@ -74,7 +74,9 @@ func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 	}
 
 	Album.BandID = band.ID
-	Album.Name = doc.Find(`.album_name`).Text()
+
+	albumName := doc.Find(`.album_name`).Text()
+	Album.Name = strings.Replace(albumName, "\n", "", -1)
 
 	position := make(map[string]int)
 	findLeftSection := map[string]string{"type": "Type:", "release_date": "Release date:"}
@@ -109,7 +111,6 @@ func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 	albumRepo := repositories.MakeAlbumRepository()
 	albumRepo.Save(Album)
 
-	println("Album parsed " + band.Name + " - " + Album.Name)
 	ParseSongs(Album, doc)
 
 	return Album
