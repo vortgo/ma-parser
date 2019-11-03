@@ -16,7 +16,7 @@ const lastBandUpdateUrl = "https://www.metal-archives.com/archives/ajax-band-lis
 func ParseLastBandUpdate() {
 	var log = logger.New()
 	lastBandUpdatePeriod, _ := strconv.Atoi(os.Getenv("PARSE_LAST_BAND_UPDATE_PERIOD_MINUTES"))
-	ticker := time.NewTicker(time.Second * time.Duration(lastBandUpdatePeriod))
+	ticker := time.NewTicker(time.Minute * time.Duration(lastBandUpdatePeriod))
 	defer func() {
 		if e := recover(); e != nil {
 			log.SetContext(logger.Context{
