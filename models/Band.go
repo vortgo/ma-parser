@@ -6,11 +6,15 @@ import (
 )
 
 type BandElastic struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	ReindexAt time.Time `json:"reindex_at"`
+	ID                uint      `json:"id"`
+	Name              string    `json:"name"`
+	FormedIn          int       `json:"formed_in"`
+	AlbumsCount       int       `json:"albums_count"`
+	DescriptionLength int       `json:"description_length"`
+	Status            string    `json:"status"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	ReindexAt         time.Time `json:"reindex_at"`
 }
 
 type Band struct {
@@ -34,8 +38,18 @@ type Band struct {
 	DeletedAt     *time.Time `sql:"index"`
 }
 
-func (band *Band) GetIndexJson() string {
-	document := BandElastic{band.ID, band.Name, band.CreatedAt, band.UpdatedAt, time.Now()}
+func (band *Band) GetIndexJson(countAlbums int) string {
+	document := BandElastic{
+		ID:                band.ID,
+		Name:              band.Name,
+		AlbumsCount:       countAlbums,
+		FormedIn:          band.FormedIn,
+		DescriptionLength: len(band.Description),
+		Status:            band.Status,
+		CreatedAt:         band.CreatedAt,
+		UpdatedAt:         band.UpdatedAt,
+		ReindexAt:         time.Now(),
+	}
 	jsonDoc, _ := json.Marshal(document)
 
 	return string(jsonDoc)

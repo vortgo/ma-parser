@@ -38,7 +38,7 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 		return retry(requestUrl)
 	}
 
-	log.Println("End")
+	log.Println("End request to ", requestUrl)
 	time.Sleep(time.Duration(2) * time.Second)
 	return resp
 }

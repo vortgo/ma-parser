@@ -1,15 +1,17 @@
 package repositories
 
 import (
+	"github.com/jinzhu/gorm"
+	"github.com/vortgo/ma-parser/elasticsearch"
 	"github.com/vortgo/ma-parser/models"
 )
 
 type BandRepository struct {
-	*DbAndElasticRepository
+	*gorm.DB
 }
 
 func MakeBandRepository() *BandRepository {
-	return &BandRepository{&DbAndElasticRepository{PostgresDB}}
+	return &BandRepository{PostgresDB}
 }
 
 func (repo *BandRepository) FindBandByPlatformId(platformId string) *models.Band {
@@ -17,4 +19,11 @@ func (repo *BandRepository) FindBandByPlatformId(platformId string) *models.Band
 
 	repo.Where(&band).First(&band)
 	return &band
+}
+
+func (repo *BandRepository) SaveToElastic(band models.Band) {
+	var count int
+	repo.DB.Model(&models.Album{}).Where("band_id = ?", band.ID).Count(&count)
+	elasticDocument := band.GetIndexJson(count)
+	elasticsearch.IndexDataToElastic(&band, elasticDocument)
 }

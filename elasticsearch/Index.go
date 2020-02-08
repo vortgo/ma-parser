@@ -9,11 +9,10 @@ import (
 	"strconv"
 )
 
-func IndexDataToElastic(model IndexingModel) {
+func IndexDataToElastic(model IndexingModel, jsonDoc string) {
 	ctx := context.Background()
 	id := model.GetId()
 
-	jsonDoc := model.GetIndexJson()
 	client, err := elastic.NewClient(elastic.SetHttpClient(utils.CustomHttpClient), elastic.SetSniff(false), elastic.SetHealthcheck(false), elastic.SetURL(os.Getenv("ELASTIC_URL")))
 	if err != nil {
 		log.Printf("Elastic: %s\n", err)

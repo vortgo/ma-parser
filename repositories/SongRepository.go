@@ -1,15 +1,16 @@
 package repositories
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/vortgo/ma-parser/models"
 )
 
 type SongRepository struct {
-	*DbAndElasticRepository
+	*gorm.DB
 }
 
 func MakeSongRepository() *SongRepository {
-	return &SongRepository{&DbAndElasticRepository{PostgresDB}}
+	return &SongRepository{PostgresDB}
 }
 
 func (repo *SongRepository) LoadByPlatformId(platformId int) *models.Song {
