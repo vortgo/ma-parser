@@ -110,6 +110,7 @@ func ParseAlbumWithSongs(band *models.Band, albumUrl string) *models.Album {
 
 	albumRepo := repositories.MakeAlbumRepository()
 	albumRepo.Save(Album)
+	albumRepo.SaveToElastic(*Album)
 
 	ParseSongs(Album, doc)
 

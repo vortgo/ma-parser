@@ -134,8 +134,8 @@ func parseBandInfo(doc *goquery.Document) *models.Band {
 	band.Description = parseDescription(band.PlatformID)
 
 	bandRepo.Save(&band)
-
 	ParseAlbumsByBand(&band)
+	bandRepo.SaveToElastic(band)
 
 	return &band
 }

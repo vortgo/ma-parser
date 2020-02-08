@@ -7,11 +7,14 @@ import (
 )
 
 type AlbumElastic struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	ReindexAt time.Time `json:"reindex_at"`
+	ID           uint      `json:"id"`
+	Name         string    `json:"name"`
+	Year         int       `json:"year"`
+	BandFormedIn int       `json:"band_formed_in"`
+	Type         string    `json:"type"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	ReindexAt    time.Time `json:"reindex_at"`
 }
 
 type Album struct {
@@ -29,8 +32,16 @@ type Album struct {
 	TotalTime   string
 }
 
-func (album *Album) GetIndexJson() string {
-	document := AlbumElastic{album.ID, album.Name, album.CreatedAt, album.UpdatedAt, time.Now()}
+func (album *Album) GetIndexJson(band Band) string {
+	document := AlbumElastic{
+		ID:           album.ID,
+		Name:         album.Name,
+		Year:         album.Year,
+		Type:         album.Type,
+		BandFormedIn: band.FormedIn,
+		CreatedAt:    album.CreatedAt,
+		UpdatedAt:    album.UpdatedAt,
+		ReindexAt:    time.Now()}
 	jsonDoc, _ := json.Marshal(document)
 
 	return string(jsonDoc)
