@@ -127,7 +127,7 @@ func parserReviewByLink(link string) {
 
 	date = strings.Replace(date, "\n", "", -1)
 	date = strings.TrimSpace(strings.Replace(date, ",", "", 1))
-	layout := "Jan 1st, 2006"
+	layout := "Jan 1, 2006"
 	dateTime, err := time.Parse(layout, date)
 
 	review.Text = text
@@ -139,4 +139,5 @@ func parserReviewByLink(link string) {
 	review.Author = author
 
 	reviewRepository.Save(&review)
+	time.Sleep(time.Second * time.Duration(7))
 }
