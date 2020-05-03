@@ -2,7 +2,6 @@ package utils
 
 import (
 	"crypto/tls"
-	"github.com/vortgo/ma-parser/logger"
 	"net/http"
 	"time"
 )
@@ -16,7 +15,6 @@ func NewClient() *Client {
 }
 
 func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
-	var log = logger.New()
 	retry := func(requestUrl string) *http.Response {
 		return client.MakeGetRequest(requestUrl)
 	}
@@ -29,12 +27,6 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 
 	resp, err := client.Do(req)
 	if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
-
-		log.SetData(logger.Data{
-			"request_url": requestUrl,
-			"culprit":     "Requester",
-		}).Warningf("Failed GET request - %s", err)
-
 		time.Sleep(time.Duration(10) * time.Second)
 		return retry(requestUrl)
 	}
