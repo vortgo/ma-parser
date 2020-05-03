@@ -108,11 +108,13 @@ func parserReviewByLink(link string) {
 	}
 
 	if album.ID == 0 {
+		println(link)
+		println("no found album " + albumPlatformId)
 		return
 	}
 
 	titleData := strings.Replace(doc.Find(".reviewBox .reviewTitle").Text(), "\n", "", 2)
-	r, _ = regexp.Compile(`^([A-z0-9 ]+)- +([0-9]+)%$`)
+	r, _ = regexp.Compile(`^(.+)- +([0-9]+)%$`)
 	result = r.FindStringSubmatch(titleData)
 
 	if len(result) < 3 {
@@ -139,5 +141,6 @@ func parserReviewByLink(link string) {
 	review.Author = author
 
 	reviewRepository.Save(&review)
+
 	time.Sleep(time.Second * time.Duration(7))
 }
