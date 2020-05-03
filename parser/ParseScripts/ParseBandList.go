@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type bandList struct {
+type ajaxResponseList struct {
 	Data  [][]string `json:"aaData"`
 	Total int        `json:"iTotalRecords"`
 }
@@ -57,7 +57,7 @@ func getBandsLinks(offset int) *[]models.BandLink {
 	return &bandsLinks
 }
 
-func extractLinksFromBandList(bandList bandList, bandUrls *[]models.BandLink) {
+func extractLinksFromBandList(bandList ajaxResponseList, bandUrls *[]models.BandLink) {
 	for _, v := range bandList.Data {
 		r, _ := regexp.Compile(`<a href="(.*?)">`)
 		link := r.FindStringSubmatch(v[0])[1]
@@ -88,9 +88,9 @@ func getJsonFromUrl(url string) string {
 	return strings.Replace(string(body), "\"sEcho\": ,\n", "", -1)
 }
 
-func parseJson(jsonData string) bandList {
+func parseJson(jsonData string) ajaxResponseList {
 	var log = logger.New()
-	bandList := bandList{}
+	bandList := ajaxResponseList{}
 
 	body := []byte(jsonData)
 

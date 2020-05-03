@@ -273,25 +273,6 @@ create table if not exists bands_lyrical_themes
 
 alter table bands_lyrical_themes owner to hma;
 
-create table if not exists reviews
-(
-	id serial not null
-		constraint reviews_pk
-			primary key,
-	album_id integer
-		constraint reviews_albums_fk
-			references albums
-			on update set null on delete set null,
-	rating varchar,
-	date timestamp(6),
-	text varchar
-);
-
-alter table reviews owner to hma;
-
-create unique index if not exists reviews_id_uindex
-	on reviews (id);
-
 create table if not exists similar_bands
 (
 	id serial not null
@@ -377,3 +358,23 @@ alter table upcoming_albums owner to hma;
 create unique index if not exists upcoming_albums_id_uindex
 	on upcoming_albums (id);
 
+/** REVIEWS **/
+create table reviews
+(
+	id          serial not null
+		constraint reviews_pk
+			primary key,
+	album_id    integer
+		constraint reviews_albums_fk
+			references albums
+			on update set null on delete set null,
+	rating      integer,
+	date        timestamp(6),
+	text        varchar,
+	author      varchar,
+	platform_id varchar,
+	title       varchar
+);
+
+create unique index reviews_id_uindex
+	on reviews (id);

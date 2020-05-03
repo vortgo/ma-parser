@@ -12,7 +12,7 @@ import (
 const upcomingAlbumsUrl = "https://www.metal-archives.com/release/ajax-upcoming/json/1?sEcho=1&iColumns=5&sColumns=&iDisplayStart=0&iDisplayLength=100&mDataProp_0=0&mDataProp_1=1&mDataProp_2=2&mDataProp_3=3&mDataProp_4=4&iSortCol_0=4&sSortDir_0=asc&iSortingCols=1&bSortable_0=true&bSortable_1=true&bSortable_2=true&bSortable_3=true&bSortable_4=true&_=1565289584123"
 
 func ParseUpcomingAlbums() {
-	time.Sleep(time.Minute * time.Duration(27))
+	time.Sleep(time.Minute * time.Duration(7))
 	upcomingAlbumsPeriod, _ := strconv.Atoi(os.Getenv("PARSE_UPCOMING_ALBUMS_PERIOD_MINUTES"))
 	ticker := time.NewTicker(time.Minute * time.Duration(upcomingAlbumsPeriod))
 

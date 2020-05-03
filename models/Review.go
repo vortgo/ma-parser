@@ -1,16 +1,17 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
 )
 
 type Review struct {
-	gorm.Model
+	ID         uint `gorm:"primary_key"`
 	AlbumID    uint
 	Album      Album
-	Rating     string
-	date       time.Time
+	Rating     int
+	Date       time.Time
 	Text       string
-	PlatformID int
+	Title      string
+	PlatformID string
+	Author     string
 }
