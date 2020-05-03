@@ -378,3 +378,23 @@ create table reviews
 
 create unique index reviews_id_uindex
 	on reviews (id);
+
+
+/** api requests **/
+create table api_requests
+(
+  id         serial not null
+    constraint api_requests_pk
+      primary key,
+  url        varchar,
+  ip         varchar,
+  user_agent varchar,
+  created_at timestamp
+);
+
+alter table api_requests
+  owner to hma;
+
+create unique index api_requests_id_uindex
+  on api_requests (id);
+
