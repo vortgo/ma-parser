@@ -18,7 +18,7 @@ const reviewsListUrl = "https://www.metal-archives.com/review/ajax-list-browse/b
 const offsetStep = 200
 
 func ParseAllReviews() {
-	parseDate, err := time.Parse("2006-01", "2020-05")
+	parseDate, err := time.Parse("2006-01", "2002-07")
 	if err != nil {
 		println(err)
 	}
