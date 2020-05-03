@@ -28,7 +28,7 @@ func ParseAllReviews() {
 			break
 		}
 		offset := 0
-
+		println(parseDate.Format("2006-01"))
 		for {
 			link := fmt.Sprintf(reviewsListUrl, parseDate.Format("2006-01"), offset)
 			jsonString := getJsonFromUrl(link)
@@ -118,6 +118,8 @@ func parserReviewByLink(link string) {
 	result = r.FindStringSubmatch(titleData)
 
 	if len(result) < 3 {
+		println(link)
+		println("invalid title")
 		return
 	}
 	title := result[1]
