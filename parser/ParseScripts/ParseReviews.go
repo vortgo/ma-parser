@@ -98,7 +98,13 @@ func parserReviewByLink(link string) {
 	}
 
 	r, _ = regexp.Compile(`<h1 class="album_name"><a .*\/([0-9]+)">`)
-	albumPlatformId := r.FindStringSubmatch(html)[1]
+	result = r.FindStringSubmatch(html)
+	if len(result) < 2 {
+		println(link)
+		println("invalid album id")
+		return
+	}
+	albumPlatformId := result[1]
 
 	var album *models.Album
 
@@ -106,7 +112,6 @@ func parserReviewByLink(link string) {
 		albumRepo := repositories.MakeAlbumRepository()
 		album = albumRepo.FindAlbumByPlatformId(platformId)
 	}
-
 	if album.ID == 0 {
 		println(link)
 		println("no found album " + albumPlatformId)
