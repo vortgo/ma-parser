@@ -26,7 +26,7 @@ func (client *Client) MakeGetRequest(requestUrl string) *http.Response {
 	req.Header.Del("Accept-Encoding")
 
 	resp, err := client.Do(req)
-	if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
+	if err != nil || resp == nil || resp.StatusCode == http.StatusForbidden {
 		time.Sleep(time.Duration(10) * time.Second)
 		return retry(requestUrl)
 	}
