@@ -17,52 +17,35 @@ import (
 const reviewsListUrl = "https://www.metal-archives.com/review/ajax-list-browse/by/date/selection/%s?sEcho=3&iColumns=7&sColumns=&iDisplayStart=%d&iDisplayLength=200&mDataProp_0=0&mDataProp_1=1&mDataProp_2=2&mDataProp_3=3&mDataProp_4=4&mDataProp_5=5&mDataProp_6=6&iSortCol_0=6&sSortDir_0=desc&iSortingCols=1&bSortable_0=true&bSortable_1=false&bSortable_2=true&bSortable_3=false&bSortable_4=true&bSortable_5=true&bSortable_6=true&_=1588494183245"
 const offsetStep = 200
 
-func ParseAllReviews() {
-	parseDate, err := time.Parse("2006-01", "2002-07")
-	if err != nil {
-		println(err)
-	}
+func ParseReviews() {
+	ticker := time.NewTicker(time.Hour * time.Duration(12))
 
-	for {
-		if parseDate.After(time.Now()) {
-			break
-		}
-		offset := 0
-		println(parseDate.Format("2006-01"))
+	for range ticker.C {
+		parseDate := time.Now()
 		for {
-			link := fmt.Sprintf(reviewsListUrl, parseDate.Format("2006-01"), offset)
-			jsonString := getJsonFromUrl(link)
-			reviewsList := parseJson(jsonString)
-
-			if len(reviewsList.Data) == 0 {
+			if parseDate.After(time.Now()) {
 				break
 			}
+			offset := 0
+			for {
+				link := fmt.Sprintf(reviewsListUrl, parseDate.Format("2006-01"), offset)
+				jsonString := getJsonFromUrl(link)
+				reviewsList := parseJson(jsonString)
 
-			for _, v := range reviewsList.Data {
-				r, _ := regexp.Compile(`href="(.*?)"`)
-				link := r.FindStringSubmatch(v[1])[1]
+				if len(reviewsList.Data) == 0 {
+					break
+				}
 
-				parserReviewByLink(link)
+				for _, v := range reviewsList.Data {
+					r, _ := regexp.Compile(`href="(.*?)"`)
+					link := r.FindStringSubmatch(v[1])[1]
+
+					parserReviewByLink(link)
+				}
+				offset += offsetStep
 			}
-			offset += offsetStep
+			parseDate = parseDate.AddDate(0, 1, 0)
 		}
-		parseDate = parseDate.AddDate(0, 1, 0)
-	}
-
-}
-
-func ParseLatestReviews() {
-	currentDate := time.Now().Format("2006-01")
-
-	link := fmt.Sprintf(reviewsListUrl, currentDate, 0)
-	jsonString := getJsonFromUrl(link)
-	reviewsList := parseJson(jsonString)
-
-	for _, v := range reviewsList.Data {
-		r, _ := regexp.Compile(`href="(.*?)"`)
-		link := r.FindStringSubmatch(v[1])[1]
-
-		parserReviewByLink(link)
 	}
 }
 

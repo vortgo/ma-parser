@@ -11,8 +11,7 @@ func Run() {
 	wg.Add(1) //daemon
 	go ParseScripts.ParseUpcomingAlbums()
 	go ParseScripts.ParseLastBandUpdate()
-	//go ParseScripts.ParseBandList()
-
-	go ParseScripts.ParseAllReviews()
+	go ParseScripts.ParseBandList()
+	go ParseScripts.ParseReviews()
 	wg.Wait()
 }

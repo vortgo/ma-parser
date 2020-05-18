@@ -116,6 +116,6 @@ func parseBandWorker(jobs <-chan string) {
 
 	for url := range jobs {
 		ParseBandByUrl(url)
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * time.Duration(30))
 	}
 }
