@@ -3,12 +3,11 @@ package ParseScripts
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/vortgo/ma-parser/logger"
 	"github.com/vortgo/ma-parser/models"
 	"github.com/vortgo/ma-parser/repositories"
 	"github.com/vortgo/ma-parser/utils"
+	"log"
 	"regexp"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -18,22 +17,23 @@ const reviewsListUrl = "https://www.metal-archives.com/review/ajax-list-browse/b
 const offsetStep = 200
 
 func ParseReviews() {
-	ticker := time.NewTicker(time.Hour * time.Duration(12))
+	//ticker := time.NewTicker(time.Hour * time.Duration(12))
 
 	runParseReview()
-	for range ticker.C {
-		runParseReview()
-	}
+	//for range ticker.C {
+	//	runParseReview()
+	//}
 }
 
 func runParseReview() {
-	parseDate := time.Now()
+	parseDate, _ := time.Parse("2006-01", "2002-07")
 	for {
 		if parseDate.After(time.Now()) {
 			break
 		}
 		offset := 0
 		for {
+			log.Println(fmt.Sprintf("------ start  - %s", parseDate.Format("2006-01")))
 			link := fmt.Sprintf(reviewsListUrl, parseDate.Format("2006-01"), offset)
 			jsonString := getJsonFromUrl(link)
 			reviewsList := parseJson(jsonString)
@@ -55,12 +55,11 @@ func runParseReview() {
 }
 
 func parserReviewByLink(link string, parseDate time.Time) {
-	r, _ := regexp.Compile(`\/([0-9]+)$`)
-	result := r.FindStringSubmatch(link)
-	if len(result) < 2 {
+	urlParts := strings.Split(link, "/")
+	if len(urlParts) < 8 {
 		return
 	}
-	reviewPlatformId := result[1]
+	reviewPlatformId := urlParts[6] + urlParts[8]
 
 	reviewRepository := repositories.MakeReviewRepository()
 	review := reviewRepository.FindReviewByPlatformId(reviewPlatformId)
@@ -69,27 +68,16 @@ func parserReviewByLink(link string, parseDate time.Time) {
 		return
 	}
 
-	var log = logger.New()
 	requester := utils.NewClient()
 	response := requester.MakeGetRequest(link)
 	defer response.Body.Close()
 
-	doc, err := goquery.NewDocumentFromReader(response.Body)
+	doc, _ := goquery.NewDocumentFromReader(response.Body)
 	html, _ := doc.Html()
-	if err != nil {
-		log.SetContext(logger.Context{
-			Collection: "Parser review by url",
-		}).SetData(logger.Data{
-			"url":        link,
-			"stacktrace": string(debug.Stack()),
-		}).Error(err)
-	}
 
-	r, _ = regexp.Compile(`<h1 class="album_name"><a .*\/([0-9]+)">`)
-	result = r.FindStringSubmatch(html)
+	r, _ := regexp.Compile(`<h1 class="album_name"><a .*\/([0-9]+)">`)
+	result := r.FindStringSubmatch(html)
 	if len(result) < 2 {
-		println(link)
-		println("invalid album id")
 		return
 	}
 	albumPlatformId := result[1]
@@ -101,8 +89,6 @@ func parserReviewByLink(link string, parseDate time.Time) {
 		album = albumRepo.FindAlbumByPlatformId(platformId)
 	}
 	if album.ID == 0 {
-		println(link)
-		println("no found album " + albumPlatformId)
 		return
 	}
 
@@ -111,8 +97,6 @@ func parserReviewByLink(link string, parseDate time.Time) {
 	result = r.FindStringSubmatch(titleData)
 
 	if len(result) < 3 {
-		println(link)
-		println("invalid title")
 		return
 	}
 	title := result[1]
@@ -121,7 +105,7 @@ func parserReviewByLink(link string, parseDate time.Time) {
 	text := doc.Find(".reviewContent").Text()
 	author := doc.Find(".reviewBox .profileMenu").Text()
 
-	reviewDate, err := time.Parse("2006-01", parseDate.Format("2006-01"))
+	reviewDate, _ := time.Parse("2006-01", parseDate.Format("2006-01"))
 
 	review.Text = text
 	review.AlbumID = album.ID
@@ -132,6 +116,4 @@ func parserReviewByLink(link string, parseDate time.Time) {
 	review.Author = author
 
 	reviewRepository.Save(&review)
-
-	time.Sleep(time.Second * time.Duration(7))
 }
