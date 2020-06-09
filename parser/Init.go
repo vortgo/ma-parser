@@ -12,6 +12,6 @@ func Run() {
 	go ParseScripts.ParseUpcomingAlbums()
 	go ParseScripts.ParseLastBandUpdate()
 	go ParseScripts.ParseBandList()
-	//go ParseScripts.ParseReviews()
+	go ParseScripts.ParseReviews()
 	wg.Wait()
 }

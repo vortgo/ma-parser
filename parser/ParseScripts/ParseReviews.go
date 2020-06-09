@@ -20,36 +20,41 @@ const offsetStep = 200
 func ParseReviews() {
 	ticker := time.NewTicker(time.Hour * time.Duration(12))
 
+	runParseReview()
 	for range ticker.C {
-		parseDate := time.Now()
-		for {
-			if parseDate.After(time.Now()) {
-				break
-			}
-			offset := 0
-			for {
-				link := fmt.Sprintf(reviewsListUrl, parseDate.Format("2006-01"), offset)
-				jsonString := getJsonFromUrl(link)
-				reviewsList := parseJson(jsonString)
-
-				if len(reviewsList.Data) == 0 {
-					break
-				}
-
-				for _, v := range reviewsList.Data {
-					r, _ := regexp.Compile(`href="(.*?)"`)
-					link := r.FindStringSubmatch(v[1])[1]
-
-					parserReviewByLink(link)
-				}
-				offset += offsetStep
-			}
-			parseDate = parseDate.AddDate(0, 1, 0)
-		}
+		runParseReview()
 	}
 }
 
-func parserReviewByLink(link string) {
+func runParseReview() {
+	parseDate := time.Now()
+	for {
+		if parseDate.After(time.Now()) {
+			break
+		}
+		offset := 0
+		for {
+			link := fmt.Sprintf(reviewsListUrl, parseDate.Format("2006-01"), offset)
+			jsonString := getJsonFromUrl(link)
+			reviewsList := parseJson(jsonString)
+
+			if len(reviewsList.Data) == 0 {
+				break
+			}
+
+			for _, v := range reviewsList.Data {
+				r, _ := regexp.Compile(`href="(.*?)"`)
+				link := r.FindStringSubmatch(v[1])[1]
+
+				parserReviewByLink(link, parseDate)
+			}
+			offset += offsetStep
+		}
+		parseDate = parseDate.AddDate(0, 1, 0)
+	}
+}
+
+func parserReviewByLink(link string, parseDate time.Time) {
 	r, _ := regexp.Compile(`\/([0-9]+)$`)
 	result := r.FindStringSubmatch(link)
 	if len(result) < 2 {
@@ -115,19 +120,15 @@ func parserReviewByLink(link string) {
 
 	text := doc.Find(".reviewContent").Text()
 	author := doc.Find(".reviewBox .profileMenu").Text()
-	date := strings.Replace(doc.Find(".reviewBox .profileMenu").Parent().Text(), author, "", 1)
 
-	date = strings.Replace(date, "\n", "", -1)
-	date = strings.TrimSpace(strings.Replace(date, ",", "", 1))
-	layout := "Jan 1, 2006"
-	dateTime, err := time.Parse(layout, date)
+	reviewDate, err := time.Parse("2006-01", parseDate.Format("2006-01"))
 
 	review.Text = text
 	review.AlbumID = album.ID
 	review.PlatformID = reviewPlatformId
 	review.Rating = rating
 	review.Title = title
-	review.Date = dateTime
+	review.Date = reviewDate
 	review.Author = author
 
 	reviewRepository.Save(&review)
