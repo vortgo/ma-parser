@@ -17,16 +17,16 @@ const reviewsListUrl = "https://www.metal-archives.com/review/ajax-list-browse/b
 const offsetStep = 200
 
 func ParseReviews() {
-	//ticker := time.NewTicker(time.Hour * time.Duration(12))
+	ticker := time.NewTicker(time.Hour * time.Duration(12))
 
 	runParseReview()
-	//for range ticker.C {
-	//	runParseReview()
-	//}
+	for range ticker.C {
+		runParseReview()
+	}
 }
 
 func runParseReview() {
-	parseDate, _ := time.Parse("2006-01", "2002-07")
+	parseDate, _ := time.Parse("2006-01", time.Now().Format("2006-01"))
 	for {
 		if parseDate.After(time.Now()) {
 			break
